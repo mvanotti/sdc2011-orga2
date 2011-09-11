@@ -6,26 +6,24 @@
 #include "filtros.h"
 
 
+/* Macro mágico para definir un puntero a una función de filtro */
+#define FILTER_FUNCTION(X) void (*(X))(unsigned char *, unsigned char *, int, int, int)
+
 const int max_filter = 4;
 const int max_camaras = 10; 
 
-/* filters es un arreglo de punteros a los filtros */
 
+/* Son arreglos de punteros a filtros */
+FILTER_FUNCTION(filters_asm[]) = {sobel_asm, prewitt_asm, roberts_asm, freichen_asm} ;
+FILTER_FUNCTION(filters_c[]) = {sobel_c, prewitt_c, roberts_c, freichen_c} ;
 
-void (*filters_asm[])(unsigned char *, unsigned char *, int, int, int) =
-	 {sobel_asm, prewitt_asm, roberts_asm, freichen_asm} ;
-
-void (*filters_c[])(unsigned char *, unsigned char *, int, int, int) =
-	 {sobel_c, prewitt_c, roberts_c, freichen_c} ;
-
-void (**filters)(unsigned char *, unsigned char *, int, int, int) ;
+/* filters apunta a filters_asm o a filters_c */
+FILTER_FUNCTION(*filters);
 
 char *filter_names[] = {"sobel", "prewitt", "roberts", "freichen"};
 
 
-
-
-void apply_filter(IplImage **src, void (*filter)(unsigned char *, unsigned char *, int, int, int));
+void apply_filter(IplImage **src, FILTER_FUNCTION(filter));
 IplImage *rgb2gray(IplImage *src);
 double get_fps(struct timeval *tv, unsigned int frames);
 void write_fps(IplImage *image , char *strfps);
@@ -37,9 +35,8 @@ int main(void) {
 	int continue_while = 1;
 
 	CvCapture *camaras[max_camaras];
+	char *str_camaras[] = {"uno", "dos", "tres", "cuatro", "cinco", "seis"};
 
-
-	CvCapture *capture = NULL;
 	IplImage *frame = NULL;	
 	IplImage *buffer = NULL;
 	int key;
@@ -55,39 +52,61 @@ int main(void) {
 
 /*	int i, k = 0; */
 
-	capture = cvCaptureFromCAM(0);
-	camaras[0] = capture;
-	capture = camaras[0];
-/*
-	for (i = 0; i < max_camaras; i++) {
-		camaras[k] = cvCaptureFromCAM(i);
-		if (camaras[k] != NULL) {
-			cvSetCaptureProperty( camaras[k], CV_CAP_PROP_FRAME_WIDTH, 640);
-			cvSetCaptureProperty( camaras[k], CV_CAP_PROP_FRAME_HEIGHT, 480);
-			k++;
+/* Cargamos informacion necesaria del archivo de config */
+	FILE *config = fopen("config.conf", "r");
+	if (config == NULL) {
+		
+	}
+
+	int k = 0;
+	int device = 0;
+	int height = 0;
+	int width = 0; 
+	while (!feof(config)) {
+		fscanf(config, "%d %d %d", &device, &width, &height);
+		if (feof(config)) break;
+		camaras[k] = cvCaptureFromCAM(device);
+		
+		if (camaras[k] == NULL) {
+			fprintf(stderr, "No se pudo abrir la camara %d %d \n", device, k);
+			exit(1);
 		}
-	}
 
-	if (k == 0) {
-		fprintf(stderr, "No se pudo abrir ninguna camara!\n");
-		exit(1); 
+		printf("Se agregó la camara: %d con resolucion %d x %d\n", device, width, height);
+		cvSetCaptureProperty( camaras[k], CV_CAP_PROP_FRAME_WIDTH, width);
+		cvSetCaptureProperty( camaras[k], CV_CAP_PROP_FRAME_HEIGHT, height);
+		cvNamedWindow(str_camaras[k], CV_WINDOW_AUTOSIZE);
+		k++;
 	}
-*/
+	fclose(config);
 
-	cvNamedWindow("filters", CV_WINDOW_AUTOSIZE);
-	cvNamedWindow("original", CV_WINDOW_AUTOSIZE);
-	frame = cvQueryFrame(capture);	
-	cvMoveWindow("original", frame->width + 10, 0);
+	frame = cvQueryFrame(camaras[0]);	
 	cvMoveWindow("filters", 0, 0);
 	
 	key = -1;
 	while (continue_while) {
-		frame = cvQueryFrame(capture);		
+		for (int i = 0; i < k; i++) {
+			frame = cvQueryFrame(camaras[i]);		
 
-		if (frame == NULL) {
-			break;
+			if (frame == NULL) {
+				break;
+			}
+
+
+			/* Convertimos la imagen a blanco y negro usando nuestros filtros */
+			buffer = rgb2gray(frame);
+
+			/* Aplicamos el filtro correspondiente */
+			apply_filter(&buffer, filters[filter_index]);
+
+
+			/* Una vez aplicado el filtro, agregamos los fps a la imagen */
+			write_fps(buffer, fpsstr);
+
+			cvShowImage(str_camaras[i], frame);
+			cvReleaseImage(&buffer);
 		}
-
+		key = cvWaitKey(5);
 
 		/* Si presionamos alguna tecla se cambia el filtro actual */
 		switch (key) {
@@ -110,35 +129,20 @@ int main(void) {
 		}
 
 
-		/* Convertimos la imagen a blanco y negro usando nuestros filtros */
-		buffer = rgb2gray(frame);
-
-		/* Aplicamos el filtro correspondiente */
-		apply_filter(&buffer, filters[filter_index]);
-
-
-		/* Una vez aplicado el filtro, agregamos los fps a la imagen */
-		write_fps(buffer, fpsstr);
-
-		cvShowImage("original", frame);
-		cvShowImage("filters", buffer);
-
-
-
 		/* Calculamos los fps */
 		counter++;
 		if (counter % 10 == 0) {
 			sprintf(fpsstr, "fps: %.2f", get_fps(&tv, 10));
 		}
 
-		key = cvWaitKey(1);
-		cvReleaseImage(&buffer);
-	//	cvReleaseImage(&buffer2);
+		
 	}
 
-	cvReleaseCapture(&capture);
-	cvDestroyWindow("original");
-	cvDestroyWindow("filters");
+
+	exit(0);
+//	cvReleaseCapture(&capture);
+//	cvDestroyWindow("original");
+//	cvDestroyWindow("filters");
 	return 0; 	
 		
 }
