@@ -7,6 +7,7 @@
 
 
 const int max_filter = 4;
+const int max_camaras = 10; 
 
 /* filters es un arreglo de punteros a los filtros */
 
@@ -28,6 +29,9 @@ int main(void) {
 	filters = filters_asm;
 
 
+	CvCapture *camaras[max_camaras];
+
+
 	CvCapture *capture = NULL;
 	IplImage *frame = NULL;	
 	IplImage *buffer = NULL;
@@ -45,15 +49,19 @@ int main(void) {
 	struct timeval tv2;
 	gettimeofday(&tv, (void *) NULL);
 
-
-	capture = cvCaptureFromCAM(0);
-	if (capture == NULL) {
-		fprintf(stderr, "No se ha podido abrir la cam\n");
-		exit(1);
+	for (int i = 0, int k = 0; i < max_camaras; i++) {
+		camaras[k] = cvCaptureFromCam(i);
+		if (camaras[k] != NULL) {
+			cvSetCaptureProperty( camaras[k], CV_CAP_PROP_FRAME_WIDTH, 640);
+			cvSetCaptureProperty( camaras[k], CV_CAP_PROP_FRAME_HEIGHT, 480);
+			k++;
+		}
 	}
 
-	cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_WIDTH, 640);
-	cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_HEIGHT, 480);
+	if (k == 0) {
+		fprintf(stderr, "No se pudo abrir ninguna camara!\n");
+		exit(1); 
+	}
 
 
 
