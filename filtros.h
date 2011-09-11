@@ -6,4 +6,9 @@ void prewitt_asm (unsigned char *src, unsigned char *dst, int m, int n, int row_
 void sobel_asm (unsigned char *src, unsigned char *dst, int m, int n, int row_size);
 void freichen_asm (unsigned char *src, unsigned char *dst, int m, int n, int row_size);
 
+void roberts_c (unsigned char *src, unsigned char *dst, int m, int n, int row_size);
+void prewitt_c (unsigned char *src, unsigned char *dst, int m, int n, int row_size);
+void sobel_c (unsigned char *src, unsigned char *dst, int m, int n, int row_size);
+void freichen_c (unsigned char *src, unsigned char *dst, int m, int n, int row_size);
+
 #endif /* !__FILTROS__H__ */

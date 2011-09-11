@@ -9,15 +9,23 @@
 const int max_filter = 4;
 
 /* filters es un arreglo de punteros a los filtros */
-void (*filters[])(unsigned char *, unsigned char *, int, int, int) =
+
+
+void (*filters_asm[])(unsigned char *, unsigned char *, int, int, int) =
 	 {sobel_asm, prewitt_asm, roberts_asm, freichen_asm} ;
 
-char* filter_names[] = {"sobel", "prewitt", "roberts", "freichen"};
+void (*filters_c[])(unsigned char *, unsigned char *, int, int, int) =
+	 {sobel_c, prewitt_c, roberts_c, freichen_c} ;
+
+void (**filters)(unsigned char *, unsigned char *, int, int, int) ;
+
+char *filter_names[] = {"sobel", "prewitt", "roberts", "freichen"};
 
 
 int main(void) {
 
 	int filter_index = 0;
+	filters = filters_asm;
 
 
 	CvCapture *capture = NULL;
@@ -44,6 +52,12 @@ int main(void) {
 		exit(1);
 	}
 
+	cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_WIDTH, 640);
+	cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_HEIGHT, 480);
+
+
+
+
 	cvNamedWindow("filters", CV_WINDOW_AUTOSIZE);
 	cvNamedWindow("original", CV_WINDOW_AUTOSIZE);
 	frame = cvQueryFrame(capture);	
@@ -60,10 +74,21 @@ int main(void) {
 
 
 		/* Si presionamos alguna tecla se cambia el filtro actual */
-		if (key != -1) {
-			filter_index += 1;
-			filter_index %= max_filter;
-			printf("Filtro actual:\t%s\n", filter_names[filter_index]);
+		switch (key) {
+			case ' ':
+
+				if ( filters == filters_c ) {
+					filters = filters_asm;
+				} else {
+					filters = filters_c;
+				}
+				break;
+			case -1:
+				break;
+			default: 
+				filter_index += 1;
+				filter_index %= max_filter;
+				printf("Filtro actual:\t%s\n", filter_names[filter_index]);
 		}
 
 		/* Necesitamos pasar el frame capturado a blanco y negro
