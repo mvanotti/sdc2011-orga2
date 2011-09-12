@@ -4,6 +4,8 @@
 #include <sys/time.h>
 #include <time.h>
 #include "filtros.h"
+#include <stdlib.h>
+#include <pthread.h>
 
 
 /* Macro mágico para definir un puntero a una función de filtro */
@@ -19,6 +21,9 @@ FILTER_FUNCTION(filters_c[]) = {sobel_c, prewitt_c, roberts_c, freichen_c} ;
 /* filters apunta a filters_asm o a filters_c */
 FILTER_FUNCTION(*filters);
 
+
+void *show_cam(void *dev) ;
+
 char *filter_names[] = {"sobel", "prewitt", "roberts", "freichen"};
 
 
@@ -27,83 +32,106 @@ IplImage *rgb2gray(IplImage *src);
 double get_fps(struct timeval *tv, unsigned int frames);
 void write_fps(IplImage *image , char *strfps);
 
+
+struct cam_t {
+	int device;
+	CvCapture *capture;
+	int width;
+	int height;
+	char window[2];
+};
+
+struct cam_t cams[10];
+pthread_t threads[10];
+
+
 int main(void) {
 
-	int filter_index = 0;
-	filters = filters_asm;
-	int continue_while = 1;
-
-	CvCapture *capture = NULL;
-	IplImage *frame = NULL;	
-	IplImage *buffer = NULL;
-	int key;
-
-
-	char fpsstr[100];
-	0[fpsstr] = 0;
-	int counter = 0; 
-
-
-	struct timeval tv;
-	gettimeofday(&tv, (void *) NULL);
-
-
+	int k = 0;
 /* Cargamos informacion necesaria del archivo de config */
 	FILE *config = fopen("config.conf", "r");
 	if (config == NULL) {
 		fprintf(stderr, "Error al abrir el archivo!\n");
 	}
 
-	int device = 0;
-	int height = 0;
-	int width = 0; 
 
-	fscanf(config, "%d %d %d", &device, &width, &height);
+	while (!feof(config) && k < 10) {
 
-	if (feof(config)) fprintf(stderr, "Lectura inválida\n");
+		int device = 0;
+		int height = 0;
+		int width = 0; 
 
+		fscanf(config, "%d %d %d", &device, &width, &height);
+		if (feof(config)) break;
+		
+		cams[k].device = device;
+		cams[k].width = width;
+		cams[k].height = height;
+		cams[k].window[0] = '0' + device;
+		cams[k].window[1] = '\0';
+		cams[k].capture = NULL;
+
+		k += 1;
+	}
 	fclose(config);
-	capture = cvCaptureFromCAM(device);
-	
-	if (capture == NULL) {
-		fprintf(stderr, "No se pudo abrir la camara %d\n", device);
-		exit(1);
+
+	for (int i = 0; i < k; i++) {
+		cams[i].capture = cvCaptureFromCAM(cams[i].device);
+		if (cams[i].capture == NULL) {
+			fprintf(stderr, "Error al abrir la cámara %d\n", cams[i].device);
+			exit(1);
+		}
+
+		cvSetCaptureProperty( cams[i].capture, CV_CAP_PROP_FRAME_WIDTH, 
+								cams[i].width);
+		cvSetCaptureProperty( cams[i].capture, CV_CAP_PROP_FRAME_HEIGHT, 
+								cams[i].height);	
+
+		cvNamedWindow(cams[i].window, CV_WINDOW_AUTOSIZE);
+		pthread_create(&threads[i], NULL, show_cam, (void *) &cams[i]);
+
+		printf("Se agregó la camara: %d con resolucion %d x %d\n", 
+					cams[i].device, cams[i].width, cams[i].height);
 	}
 
-	cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_WIDTH, width);
-	cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_HEIGHT, height);
-	cvNamedWindow("filtros", CV_WINDOW_AUTOSIZE);
-	printf("Se agregó la camara: %d con resolucion %d x %d\n", device, width, height);
+	for (int i = 0; i < k; i++) {
+		pthread_join( threads[i], NULL); 
+		cvReleaseCapture(&(cams[i].capture));
+		cvDestroyWindow(cams[i].window);
+	}	 
+
+	return 0; 	
+		
+}
 
 
+void *show_cam(void *dev) {
 
-	frame = cvQueryFrame(capture);	
-	cvMoveWindow("filtros", 0, 0);
-	
-	key = -1;
+	struct cam_t *cam = (struct cam_t *) dev;
+	IplImage *frame = NULL;	
+	IplImage *buffer = NULL;	
+	filters = filters_asm;
+	int	filter_index = 0;
+
+	int	key = -1;
+	int continue_while = 1;
+
 	while (continue_while) {
 		
 		/* Si presionamos alguna tecla se cambia el filtro actual */
 		switch (key) {
-			case ' ':
-				if ( filters == filters_c ) {
-					filters = filters_asm;
-				} else {
-					filters = filters_c;
-				}
-				break;
 			case 'q':
 				continue_while = 0;
 				break;			
 			case -1:
 				break;
 			default: 
-				filter_index += 1;
-				filter_index %= max_filter;
-				printf("Filtro actual:\t%s\n", filter_names[filter_index]);
+				printf("En la camara %d apretaron la tecla %c\n", 
+							cam->device, key);
+				break;
 		}
 
-		frame = cvQueryFrame(capture);		
+		frame = cvQueryFrame(cam->capture);		
 
 		if (frame == NULL) {
 			break;
@@ -116,25 +144,12 @@ int main(void) {
 		/* Aplicamos el filtro correspondiente */
 		apply_filter(&buffer, filters[filter_index]);
 
-		/* Una vez aplicado el filtro, agregamos los fps a la imagen */
-		write_fps(buffer, fpsstr);
-
-		cvShowImage("filtros", buffer);
+		cvShowImage(cam->window, buffer);
 		cvReleaseImage(&buffer);
-
 		key = cvWaitKey(1);
-
-		/* Calculamos los fps */
-		counter++;
-		if (counter % 10 == 0) {
-			sprintf(fpsstr, "fps: %.2f", get_fps(&tv, 10));
-		}
 	}
 
-	cvReleaseCapture(&capture);
-	cvDestroyWindow("filtros");
-	return 0; 	
-		
+	return NULL;
 }
 
 void write_fps(IplImage *image , char *fpsstr) {
