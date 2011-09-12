@@ -45,6 +45,10 @@ struct cam_t cams[10];
 pthread_t threads[10];
 
 
+pthread_mutex_t mutex_filters = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mutex_filter_index = PTHREAD_MUTEX_INITIALIZER;
+int	filter_index = 0;
+
 int main(void) {
 
 	int k = 0;
@@ -75,6 +79,7 @@ int main(void) {
 	}
 	fclose(config);
 
+	filters = filters_asm;
 	for (int i = 0; i < k; i++) {
 		cams[i].capture = cvCaptureFromCAM(cams[i].device);
 		if (cams[i].capture == NULL) {
@@ -110,8 +115,6 @@ void *show_cam(void *dev) {
 	struct cam_t *cam = (struct cam_t *) dev;
 	IplImage *frame = NULL;	
 	IplImage *buffer = NULL;	
-	filters = filters_asm;
-	int	filter_index = 0;
 
 	int	key = -1;
 	int continue_while = 1;
@@ -122,12 +125,25 @@ void *show_cam(void *dev) {
 		switch (key) {
 			case 'q':
 				continue_while = 0;
-				break;			
+				break;		
 			case -1:
 				break;
-			default: 
-				printf("En la camara %d apretaron la tecla %c\n", 
-							cam->device, key);
+			case ' ':
+				pthread_mutex_lock( &mutex_filters );
+				if (filters == filters_asm) {
+					filters = filters_c;
+					printf("Se cambiaron los filtros a la version en C\n");
+				} else {
+					filters = filters_asm;
+					printf("Se cambiaron los filtros a la version en ASM\n");
+				}
+				pthread_mutex_unlock( &mutex_filters );
+			default:
+				pthread_mutex_lock( &mutex_filter_index );
+					filter_index = (filter_index + 1) % max_filter;
+					printf("Filtro actual: %s\n", filter_names[filter_index]);
+				pthread_mutex_unlock( &mutex_filter_index );
+
 				break;
 		}
 
