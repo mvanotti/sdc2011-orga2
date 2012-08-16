@@ -1,14 +1,13 @@
 CC = gcc
 ASM = nasm
 DBG = gdb
-CFLAGS = -ggdb -Wall -Wextra -Werror -std=c99 -pedantic
+CFLAGS = -ggdb -Wall -Wextra  -std=c99 -pedantic
 ASMFLAGS = -felf32 -g -F dwarf
 OPENCV_LIB = `pkg-config --cflags --libs opencv`
 
 BIN = opencv
 
 OBJS = opencv.o \
-		roberts_asm.o prewitt_asm.o sobel_asm.o freichen_asm.o \
 		roberts_c.o prewitt_c.o sobel_c.o freichen_c.o \
 		utils.o
 

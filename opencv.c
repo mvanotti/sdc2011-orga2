@@ -12,7 +12,8 @@ const int max_filter = 4;
 
 
 void (*filters_asm[])(unsigned char *, unsigned char *, int, int, int) =
-	 {sobel_asm, prewitt_asm, roberts_asm, freichen_asm} ;
+	 {sobel_c, prewitt_c, roberts_c, freichen_c} ;
+
 
 void (*filters_c[])(unsigned char *, unsigned char *, int, int, int) =
 	 {sobel_c, prewitt_c, roberts_c, freichen_c} ;
