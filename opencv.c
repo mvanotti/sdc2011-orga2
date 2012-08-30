@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <sys/time.h>
 #include <time.h>
-#include "filtros.h"
+#include "filtros/filtros.h"
 
 
 const int max_filter = 4;
@@ -11,12 +11,12 @@ const int max_filter = 4;
 /* filters es un arreglo de punteros a los filtros */
 
 
-void (*filters_asm[])(unsigned char *, unsigned char *, int, int, int) =
-	 {sobel_c, prewitt_c, roberts_c, freichen_c} ;
+void (*filters_asm[])(unsigned char *, unsigned char *, int, int, int, int) =
+	 {} ;
 
 
-void (*filters_c[])(unsigned char *, unsigned char *, int, int, int) =
-	 {sobel_c, prewitt_c, roberts_c, freichen_c} ;
+void (*filters_c[])(unsigned char *, unsigned char *, int, int, int, int) =
+	 {} ;
 
 void (**filters)(unsigned char *, unsigned char *, int, int, int) ;
 
@@ -100,8 +100,6 @@ int main(void) {
 		buffer = cvCreateImage( cvSize(frame->width, frame->height), 
 				IPL_DEPTH_8U,
 				1);
-
-		cvCvtColor( frame, buffer, CV_RGB2GRAY);
 
 		buffer2 = cvCreateImage( cvSize(frame->width, frame->height), 
 				IPL_DEPTH_8U,
