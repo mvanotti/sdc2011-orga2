@@ -6,21 +6,21 @@
 #include "filtros/filtros.h"
 
 
-const int max_filter = 4;
+const int max_filter = 1;
 
 /* filters es un arreglo de punteros a los filtros */
 
 
 void (*filters_asm[])(unsigned char *, unsigned char *, int, int, int, int) =
-	 {} ;
+	 {rotar_c} ;
 
 
 void (*filters_c[])(unsigned char *, unsigned char *, int, int, int, int) =
-	 {} ;
+	 {rotar_c} ;
 
-void (**filters)(unsigned char *, unsigned char *, int, int, int) ;
+void (**filters)(unsigned char *, unsigned char *, int, int, int, int) ;
 
-char *filter_names[] = {"sobel", "prewitt", "roberts", "freichen"};
+char *filter_names[] = {"rotar"};
 
 
 int main(void) {

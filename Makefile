@@ -2,13 +2,13 @@ CC = gcc
 ASM = nasm
 DBG = gdb
 CFLAGS = -ggdb -Wall -Wextra  -std=c99 -pedantic
-ASMFLAGS = -felf32 -g -F dwarf
+ASMFLAGS = -felf64 -g -F dwarf
 OPENCV_LIB = `pkg-config --cflags --libs opencv`
 
 BIN = opencv
 
 OBJS = opencv.o \
-		roberts_c.o prewitt_c.o sobel_c.o freichen_c.o \
+		filtros/c/rotar_c.o\
 		utils.o
 
 .PHONY: all debug test clean
