@@ -12,11 +12,11 @@ const int max_filter = 1;
 
 
 void (*filters_asm[])(unsigned char *, unsigned char *, int, int, int, int) =
-	 {smalltiles_c} ;
+	 {rotar_asm} ;
 
 
 void (*filters_c[])(unsigned char *, unsigned char *, int, int, int, int) =
-	 {smalltiles_c} ;
+	 {rotar_c} ;
 
 void (**filters)(unsigned char *, unsigned char *, int, int, int, int) ;
 
@@ -53,8 +53,8 @@ int main(void) {
 		exit(1);
 	}
 
-	cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_WIDTH, 1024);
-	cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_HEIGHT, 720);
+	cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_WIDTH, 640);
+	cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_HEIGHT, 480);
 
 
 
@@ -76,12 +76,14 @@ int main(void) {
 
 		/* Si presionamos alguna tecla se cambia el filtro actual */
 		switch (key) {
-			case ' ':
+			case 's':
 
 				if ( filters == filters_c ) {
 					filters = filters_asm;
+					printf("Filtros en ASM\n");
 				} else {
 					filters = filters_c;
+					printf("Filtros en C\n");
 				}
 				break;
 			case -1:
@@ -101,8 +103,7 @@ int main(void) {
 				IPL_DEPTH_8U,
 				4);
 
-                cvCvtColor(frame, buffer,CV_RGB2RGBA);
-
+		cvCvtColor( frame, buffer, CV_RGB2RGBA);
 		buffer2 = cvCreateImage( cvSize(frame->width, frame->height), 
 				IPL_DEPTH_8U,
 				4);
