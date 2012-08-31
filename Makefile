@@ -8,7 +8,7 @@ OPENCV_LIB = `pkg-config --cflags --libs opencv`
 BIN = opencv
 
 OBJS = opencv.o \
-		filtros/c/rotar_c.o\
+		filtros/c/smalltiles_c.o\
 		utils.o
 
 .PHONY: all debug test clean

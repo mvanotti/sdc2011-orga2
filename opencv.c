@@ -12,11 +12,11 @@ const int max_filter = 1;
 
 
 void (*filters_asm[])(unsigned char *, unsigned char *, int, int, int, int) =
-	 {rotar_c} ;
+	 {smalltiles_c} ;
 
 
 void (*filters_c[])(unsigned char *, unsigned char *, int, int, int, int) =
-	 {rotar_c} ;
+	 {smalltiles_c} ;
 
 void (**filters)(unsigned char *, unsigned char *, int, int, int, int) ;
 
@@ -53,8 +53,8 @@ int main(void) {
 		exit(1);
 	}
 
-	cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_WIDTH, 640);
-	cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_HEIGHT, 480);
+	cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_WIDTH, 1024);
+	cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_HEIGHT, 720);
 
 
 
@@ -99,16 +99,18 @@ int main(void) {
 		 */
 		buffer = cvCreateImage( cvSize(frame->width, frame->height), 
 				IPL_DEPTH_8U,
-				1);
+				4);
+
+                cvCvtColor(frame, buffer,CV_RGB2RGBA);
 
 		buffer2 = cvCreateImage( cvSize(frame->width, frame->height), 
 				IPL_DEPTH_8U,
-				1);
+				4);
 
 		filters[filter_index] ((unsigned char *) buffer->imageData, 
 								(unsigned char *)  buffer2->imageData, 
 								buffer->height, buffer->width, 
-								buffer->widthStep);
+								buffer->widthStep, buffer2->widthStep);
 
 		/* Una vez aplicado el filtro, agregamos los fps a la imagen */
 		CvFont font;
