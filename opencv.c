@@ -10,6 +10,9 @@ const int max_filter = 1;
 
 /* filters es un arreglo de punteros a los filtros */
 
+char *fil = "filtro actual";
+char *fps[20];
+char *impl = "asm";
 
 void (*filters_asm[])(unsigned char *, unsigned char *, int, int, int, int) =
 	 {rotar_asm} ;
@@ -116,8 +119,8 @@ int main(void) {
 		/* Una vez aplicado el filtro, agregamos los fps a la imagen */
 		CvFont font;
     	cvInitFont(&font, CV_FONT_HERSHEY_SIMPLEX, 1.0, 1.0, 0, 1, CV_AA);
-    	cvPutText(buffer2, fpsstr , cvPoint(10, 30), 
-			&font, cvScalar(255, 255, 255, 0));
+    	//cvPutText(buffer2, fpsstr , cvPoint(10, 30), 
+	//		&font, cvScalar(255, 255, 255, 0));
 
 		cvShowImage("original", frame);
 		cvShowImage("filters", buffer2);
@@ -134,7 +137,13 @@ int main(void) {
 
 			gettimeofday(&tv, (void *) NULL);
 			sprintf(fpsstr, "fps: %.2f", fps);
-
+			clean_screen();
+			printf(fil);
+			printf(" ");
+			printf(impl);
+			printf(" ");
+			printf(fpsstr);
+			fflush(stdout);
 		}
 
 		key = cvWaitKey(1);
@@ -147,4 +156,8 @@ int main(void) {
 	cvDestroyWindow("filters");
 	return 0; 	
 		
+}
+
+void clean_screen() {
+	printf("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b");
 }
