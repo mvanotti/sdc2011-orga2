@@ -16,6 +16,7 @@ const int max_filter = 1;
 lista_filtro *lista = NULL;
 
 void clean_screen();
+char fpsstr[100];
 
 void (*filters_asm[])(unsigned char *, unsigned char *, int, int, int, int) =
 	 {rotar_asm} ;
@@ -42,14 +43,13 @@ int main(void) {
 	IplImage *bufferTMP = NULL;
 	int key;
 
-	//char fpsstr[100];
-	//0[fpsstr] = 0;
-	//double fps; 
-	//int counter = 0; 
+	0[fpsstr] = 0;
+	double fps; 
+	int counter = 0; 
 
-	//struct timeval tv;
-	//struct timeval tv2;
-	//gettimeofday(&tv, (void *) NULL);
+	struct timeval tv;
+	struct timeval tv2;
+	gettimeofday(&tv, (void *) NULL);
 
 	capture = cvCaptureFromCAM(0);
 	if (capture == NULL) {
@@ -148,8 +148,8 @@ int main(void) {
 		}
 
 		//clean_screen();
-		/* Calculamos los fps */
-		/*counter++;
+		//Calculamos los fps 
+		counter++;
 		if (counter % 10 == 0) {
 			gettimeofday(&tv2, (void *) NULL);
 
@@ -159,7 +159,8 @@ int main(void) {
 
 			gettimeofday(&tv, (void *) NULL);
 			sprintf(fpsstr, "fps: %.2f  ", fps);
-		}*/
+			print_everything();
+		}
 
 		/* aplicamos los filtros */
         cvCvtColor( frame, buffer, CV_RGB2RGBA);
@@ -211,6 +212,8 @@ int main(void) {
 void print_everything() {
 	nfiltro *it = NULL;
 	clean_screen();
+	printf(fpsstr);
+	printf("  ");
 	for (it = lista->pri; it != NULL; it = it->sig) {
 		if (it == lista->actual) {
 			printf("*");
