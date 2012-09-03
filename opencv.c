@@ -7,7 +7,7 @@
 #include "listafiltro.h"
 
 #define ASM 1
-#define C 2
+#define C 0
 
 int actual = ASM;
 
@@ -57,8 +57,8 @@ int main(void) {
 		exit(1);
 	}
 
-	cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_WIDTH, 640);
-	cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_HEIGHT, 480);
+	cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_WIDTH, 1366);
+	cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_HEIGHT, 720);
 
 	cvNamedWindow("filters", CV_WINDOW_AUTOSIZE);
 	cvNamedWindow("original", CV_WINDOW_AUTOSIZE);
@@ -212,8 +212,9 @@ int main(void) {
 void print_everything() {
 	nfiltro *it = NULL;
 	clean_screen();
+	printf(actual ? "ASM " : "C ");
 	printf(fpsstr);
-	printf("  ");
+	printf("\n");
 	for (it = lista->pri; it != NULL; it = it->sig) {
 		if (it == lista->actual) {
 			printf("*");
