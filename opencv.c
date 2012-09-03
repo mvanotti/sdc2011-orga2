@@ -4,15 +4,18 @@
 #include <sys/time.h>
 #include <time.h>
 #include "filtros/filtros.h"
+#include "listafiltro.h"
 
+#define ASM 1
+#define C 2
+
+int actual = ASM;
 
 const int max_filter = 1;
 
-/* filters es un arreglo de punteros a los filtros */
+lista_filtro *lista = NULL;
 
-char *fil = "filtro actual";
-char *fps[20];
-char *impl = "asm";
+void clean_screen();
 
 void (*filters_asm[])(unsigned char *, unsigned char *, int, int, int, int) =
 	 {rotar_asm} ;
@@ -25,12 +28,10 @@ void (**filters)(unsigned char *, unsigned char *, int, int, int, int) ;
 
 char *filter_names[] = {"rotar"};
 
-
 int main(void) {
+    nfiltro *it = NULL;
 
-	int filter_index = 0;
-	filters = filters_asm;
-
+    lista = crear();
 
 	CvCapture *capture = NULL;
 	IplImage *frame = NULL;	
@@ -38,17 +39,14 @@ int main(void) {
 	IplImage *buffer2 = NULL;
 	int key;
 
-
 	char fpsstr[100];
 	0[fpsstr] = 0;
 	double fps; 
 	int counter = 0; 
 
-
 	struct timeval tv;
 	struct timeval tv2;
 	gettimeofday(&tv, (void *) NULL);
-
 
 	capture = cvCaptureFromCAM(0);
 	if (capture == NULL) {
@@ -58,9 +56,6 @@ int main(void) {
 
 	cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_WIDTH, 640);
 	cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_HEIGHT, 480);
-
-
-
 
 	cvNamedWindow("filters", CV_WINDOW_AUTOSIZE);
 	cvNamedWindow("original", CV_WINDOW_AUTOSIZE);
@@ -75,57 +70,60 @@ int main(void) {
 		if (frame == NULL) {
 			break;
 		}
-
-
 		/* Si presionamos alguna tecla se cambia el filtro actual */
+        /* Comandos: 
+            s - cambia implementación
+            q - agrega filtro rotar
+            w - agrega filtro scale2x
+            e - agrega filtro monocromatizar
+            r - agrega filtro sepia
+            t - agrega filtro smalltiles
+            y - agrega filtro blur
+            d - borra el filtro actual
+            f - pasa al siguiente filtro
+            g - pasa al filtro anterior
+        */
 		switch (key) {
 			case 's':
-
-				if ( filters == filters_c ) {
-					filters = filters_asm;
-					printf("Filtros en ASM\n");
+				if ( actual == ASM) {
+                    actual = C;
 				} else {
-					filters = filters_c;
-					printf("Filtros en C\n");
+                    actual = ASM;
 				}
 				break;
+            case 'q':
+                agregar(lista, rotar_asm, rotar_c, "rotar");
+                break;
+            case 'w':
+                agregar(lista, scale2x_asm, scale2x_c, "scale2x");
+                break;
+            case 'e':
+                agregar(lista, monocromatizar_asm, monocromatizar_c, "monocromatizar");
+                break;
+            case 'r':
+                agregar(lista, sepia_asm, sepia_c, "sepia");
+                break;
+            case 't':
+                agregar(lista, smalltiles_asm, smalltiles_c, "smalltiles");
+                break;
+            case 'y':
+                agregar(lista, blur_asm, blur_c, "blur");
+                break;
+            case 'd':
+                remover(lista);
+                break;
+            case 'f':
+                avanzar(lista);
+                break;
+            case 'g':
+                retroceder(lista);
+                break;
 			case -1:
 				break;
-			default: 
-				filter_index += 1;
-				filter_index %= max_filter;
-				printf("Filtro actual:\t%s\n", filter_names[filter_index]);
+			default: ;
 		}
 
-		/* Necesitamos pasar el frame capturado a blanco y negro
-		   el problema es que la profundidad va a cambiar, entonces
-			nos creamos una imagen con esa profundidad y canales y usamos
-			cvCvtColor.
-		 */
-		buffer = cvCreateImage( cvSize(frame->width, frame->height), 
-				IPL_DEPTH_8U,
-				4);
-
-		cvCvtColor( frame, buffer, CV_RGB2RGBA);
-		buffer2 = cvCreateImage( cvSize(frame->width, frame->height), 
-				IPL_DEPTH_8U,
-				4);
-
-		filters[filter_index] ((unsigned char *) buffer->imageData, 
-								(unsigned char *)  buffer2->imageData, 
-								buffer->height, buffer->width, 
-								buffer->widthStep, buffer2->widthStep);
-
-		/* Una vez aplicado el filtro, agregamos los fps a la imagen */
-		CvFont font;
-    	cvInitFont(&font, CV_FONT_HERSHEY_SIMPLEX, 1.0, 1.0, 0, 1, CV_AA);
-    	//cvPutText(buffer2, fpsstr , cvPoint(10, 30), 
-	//		&font, cvScalar(255, 255, 255, 0));
-
-		cvShowImage("original", frame);
-		cvShowImage("filters", buffer2);
-
-
+	    clean_screen();
 		/* Calculamos los fps */
 		counter++;
 		if (counter % 10 == 0) {
@@ -136,15 +134,51 @@ int main(void) {
 					 (tv2.tv_usec - tv.tv_usec));
 
 			gettimeofday(&tv, (void *) NULL);
-			sprintf(fpsstr, "fps: %.2f", fps);
-			clean_screen();
-			printf(fil);
-			printf(" ");
-			printf(impl);
-			printf(" ");
-			printf(fpsstr);
-			fflush(stdout);
+			sprintf(fpsstr, "fps: %.2f  ", fps);
 		}
+
+        /* aplicamos los filtros */
+        for (it = lista->pri; it != NULL; it = it->sig) {
+
+		    buffer = cvCreateImage( cvSize(frame->width, frame->height), 
+				IPL_DEPTH_8U,
+				4);
+
+		    cvCvtColor( frame, buffer, CV_RGB2RGBA);
+
+		    buffer2 = cvCreateImage( cvSize(frame->width, frame->height), 
+				IPL_DEPTH_8U,
+				4);
+
+            if (actual == ASM) {
+		        it->asmf((unsigned char *) buffer->imageData, 
+								(unsigned char *)  buffer2->imageData, 
+								buffer->height, buffer->width, 
+								buffer->widthStep, buffer2->widthStep);
+            } else {
+		        it->cf((unsigned char *) buffer->imageData, 
+								(unsigned char *)  buffer2->imageData, 
+								buffer->height, buffer->width, 
+								buffer->widthStep, buffer2->widthStep);
+            }
+            if (it == lista->actual) {
+                printf("*");
+            }
+            printf(it->nombre);
+            printf("  ");
+        }
+		fflush(stdout);
+                
+
+		/* Una vez aplicado el filtro, agregamos los fps a la imagen */
+		CvFont font;
+    	cvInitFont(&font, CV_FONT_HERSHEY_SIMPLEX, 1.0, 1.0, 0, 1, CV_AA);
+    	//cvPutText(buffer2, fpsstr , cvPoint(10, 30), 
+	//		&font, cvScalar(255, 255, 255, 0));
+
+		cvShowImage("original", frame);
+		cvShowImage("filters", buffer2);
+
 
 		key = cvWaitKey(1);
 		cvReleaseImage(&buffer);
