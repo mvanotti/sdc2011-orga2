@@ -4,7 +4,7 @@
 
 lista_filtro* crear(void) {
     lista_filtro* tmp = malloc(sizeof(lista_filtro));
-    tmp->prim = NULL;
+    tmp->pri = NULL;
     tmp->ult = NULL;
     tmp->actual = NULL;
     return tmp;
@@ -16,7 +16,7 @@ void agregar(lista_filtro* lista, pfiltro asmf, pfiltro cf, char* nombre){
     fil->cf = cf;
     fil->sig = NULL;
     strncpy(fil->nombre,nombre,256);
-    fil->sig[255] = '\0';
+    fil->nombre[255] = '\0';
     
     if (lista->actual != NULL) {
         fil->sig = lista->actual->sig;
@@ -46,11 +46,11 @@ void remover(lista_filtro* lista){
     }
     nfiltro *ant = tmp->ant;
     nfiltro *sig = tmp->sig;
-    if (tmp == lista->prim) {
-        lista->prim = sig;
+    if (tmp == lista->pri) {
+        lista->pri = sig;
     }
-    if (tmp == list->ult) {
-        list->ult = ant;
+    if (tmp == lista->ult) {
+        lista->ult = ant;
     }
     if (ant != NULL) {
         ant->sig = sig;

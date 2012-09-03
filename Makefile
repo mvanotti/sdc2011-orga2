@@ -8,11 +8,11 @@ OPENCV_LIB = `pkg-config --cflags --libs opencv`
 BIN = opencv
 
 OBJS = opencv.o \
+		listafiltro.o\
 		filtros/c/rotar_c.o\
 		filtros/asm/rotar_asm.o\
 		filtros/c/scale2x_c.o\
 		filtros/asm/scale2x_asm.o\
-		filtros/c/scale2x_c.o\
 		filtros/asm/monocromatizar_asm.o\
 		filtros/c/monocromatizar_c.o\
 		filtros/asm/sepia_asm.o\
@@ -21,7 +21,6 @@ OBJS = opencv.o \
 		filtros/c/smalltiles_c.o\
 		filtros/asm/blur_asm.o\
 		filtros/c/blur_c.o\
-		listafiltros.o\
 		utils.o
 
 .PHONY: all debug test clean
