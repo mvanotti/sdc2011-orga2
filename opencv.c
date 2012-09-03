@@ -39,6 +39,7 @@ int main(void) {
 	IplImage *frame = NULL;	
 	IplImage *buffer = NULL;
 	IplImage *buffer2 = NULL;
+	IplImage *bufferTMP = NULL;
 	int key;
 
 	//char fpsstr[100];
@@ -64,6 +65,16 @@ int main(void) {
 	frame = cvQueryFrame(capture);	
 	cvMoveWindow("original", frame->width + 10, 0);
 	cvMoveWindow("filters", 0, 0);
+
+    buffer = cvCreateImage( cvSize(frame->width, frame->height), 
+        IPL_DEPTH_8U,
+        4);
+    
+
+    buffer2 = cvCreateImage( cvSize(frame->width, frame->height), 
+        IPL_DEPTH_8U,
+        4);
+
 	
 	key = -1;
 	while (key != 'z') {
@@ -151,18 +162,9 @@ int main(void) {
 		}*/
 
 		/* aplicamos los filtros */
+        cvCvtColor( frame, buffer, CV_RGB2RGBA);
 		for (it = lista->pri; it != NULL; it = it->sig) {
-
-			buffer = cvCreateImage( cvSize(frame->width, frame->height), 
-				IPL_DEPTH_8U,
-				4);
-
-			cvCvtColor( frame, buffer, CV_RGB2RGBA);
-
-			buffer2 = cvCreateImage( cvSize(frame->width, frame->height), 
-				IPL_DEPTH_8U,
-				4);
-
+            
 			if (actual == ASM) {
 				it->asmf((unsigned char *) buffer->imageData, 
 								(unsigned char *)  buffer2->imageData, 
@@ -174,6 +176,10 @@ int main(void) {
 								buffer->height, buffer->width, 
 								buffer->widthStep, buffer2->widthStep);
 			}
+
+            bufferTMP = buffer;
+            buffer = buffer2;
+            buffer2 = bufferTMP;
 		}
 		fflush(stdout);
 				
@@ -185,18 +191,16 @@ int main(void) {
 	//		&font, cvScalar(255, 255, 255, 0));
 
 		cvShowImage("original", frame);
-		cvShowImage("filters", buffer2);
+		cvShowImage("filters", buffer);
 
 
-		key = cvWaitKey(1);
-		if (key != -1) {
-			int a;
-			a++;
+	    key = cvWaitKey(1);
+		if (key == -1) {
 		}
-		cvReleaseImage(&buffer);
-		cvReleaseImage(&buffer2);
 	}
 
+	cvReleaseImage(&buffer);
+	cvReleaseImage(&buffer2);
 	cvReleaseCapture(&capture);
 	cvDestroyWindow("original");
 	cvDestroyWindow("filters");

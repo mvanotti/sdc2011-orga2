@@ -15,8 +15,8 @@ void agregar(lista_filtro* lista, pfiltro asmf, pfiltro cf, char* nombre){
     fil->asmf = asmf;
     fil->cf = cf;
     fil->sig = NULL;
-    strncpy(fil->nombre,nombre,256);
-    fil->nombre[255] = '\0';
+    strncpy(fil->nombre,nombre,100);
+    fil->nombre[99] = '\0';
     
     if (lista->actual != NULL) {
         fil->sig = lista->actual->sig;
