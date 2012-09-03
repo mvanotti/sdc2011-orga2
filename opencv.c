@@ -18,17 +18,6 @@ lista_filtro *lista = NULL;
 void clean_screen();
 char fpsstr[100];
 
-void (*filters_asm[])(unsigned char *, unsigned char *, int, int, int, int) =
-	 {rotar_asm} ;
-
-
-void (*filters_c[])(unsigned char *, unsigned char *, int, int, int, int) =
-	 {rotar_c} ;
-
-void (**filters)(unsigned char *, unsigned char *, int, int, int, int) ;
-
-char *filter_names[] = {"rotar"};
-
 void print_everything();
 
 int main(void) {
@@ -130,6 +119,10 @@ int main(void) {
 					agregar(lista, blur_asm, blur_c, "blur");
 					print_everything();
 					break;
+                case 'u':
+                    agregar(lista, invertir_asm, invertir_c, "invertir");
+                    print_everything();
+                    break;
 				case 'd':
 					remover(lista);
 					print_everything();

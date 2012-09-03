@@ -1,14 +1,14 @@
 section .data
-invert_mask: db 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
+invert_mask: db 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
 DEFAULT REL
 
 section .text
-global rotar_asm
-;rotar_asm(unsigned char *src, unsigned char *dst, int h, int w, int src_row_size, int dst_row_size)
+global invertir_asm
+;invertir_asm(unsigned char *src, unsigned char *dst, int h, int w, int src_row_size, int dst_row_size)
 ;                       rdi                 rsi      rdx     rcx            r8          r9
 
 
-rotar_asm:
+invertir_asm:
     xor r11, r11
     mov r10, rcx ; w
     mov rcx, rdx ; h (loop)
@@ -20,9 +20,10 @@ rotar_asm:
     idiv r10 ; En rax dejo la cantidad de pasadas, y en rdx los bytes que me quedan por procesar
     mov r10, rax
     imul r10, 16
-    movdqu xmm0, [invert_mask]
+    movdqu xmm3, [invert_mask]
 .loop:
             movdqa xmm1, [rdi + r11]  ; Muevo 16 bytes alineados y aplico la mascara para rotarlos
+            movdqa xmm0, xmm3            
             psubusb xmm0, xmm1
             movdqa xmm1, xmm0
             movdqa [rsi + r11], xmm1
@@ -33,6 +34,7 @@ rotar_asm:
         add r11, rdx  ; Para procesar la última tira de 16 bytes, resto 16 bytes y sumo lo que me falta procesar
         sub r11, 16
         movdqu xmm1, [rdi + r11]
+        movdqa xmm0, xmm3
         psubusb xmm0, xmm1
         movdqa xmm1, xmm0
         movdqu [rsi + r11], xmm1

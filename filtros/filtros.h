@@ -18,4 +18,8 @@ void smalltiles_asm(unsigned char *src, unsigned char *dst, int h, int w, int sr
 
 void blur_c(unsigned char *src, unsigned char *dst, int h, int w, int src_row_size, int dst_row_size); 
 void blur_asm(unsigned char *src, unsigned char *dst, int h, int w, int src_row_size, int dst_row_size);
+
+void invertir_c(unsigned char *src, unsigned char *dst, int h, int w, int src_row_size, int dst_row_size); 
+void invertir_asm(unsigned char *src, unsigned char *dst, int h, int w, int src_row_size, int dst_row_size);
+
 #endif /* !__FILTROS__H__ */
