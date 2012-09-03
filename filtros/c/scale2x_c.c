@@ -6,8 +6,8 @@ bool equal_pixel(unsigned char *, unsigned char *);
 
 void scale2x_c (unsigned char *src, unsigned char *dst, int h, int w, int src_row_size, int dst_row_size) {
 
-    unsigned int row = 1;
-    unsigned int col = 1;
+    int row = 1;
+    int col = 1;
 
     while (row < h / 2 + 1) {
         src += src_row_size;

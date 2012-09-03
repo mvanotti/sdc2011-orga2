@@ -21,7 +21,7 @@ OBJS = opencv.o \
 		filtros/c/smalltiles_c.o\
 		filtros/asm/blur_asm.o\
 		filtros/c/blur_c.o\
-        listafiltros.o\
+		listafiltros.o\
 		utils.o
 
 .PHONY: all debug test clean
