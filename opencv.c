@@ -28,10 +28,12 @@ void (**filters)(unsigned char *, unsigned char *, int, int, int, int) ;
 
 char *filter_names[] = {"rotar"};
 
-int main(void) {
-    nfiltro *it = NULL;
+void print_everything();
 
-    lista = crear();
+int main(void) {
+	nfiltro *it = NULL;
+
+	lista = crear();
 
 	CvCapture *capture = NULL;
 	IplImage *frame = NULL;	
@@ -39,14 +41,14 @@ int main(void) {
 	IplImage *buffer2 = NULL;
 	int key;
 
-	char fpsstr[100];
-	0[fpsstr] = 0;
-	double fps; 
-	int counter = 0; 
+	//char fpsstr[100];
+	//0[fpsstr] = 0;
+	//double fps; 
+	//int counter = 0; 
 
-	struct timeval tv;
-	struct timeval tv2;
-	gettimeofday(&tv, (void *) NULL);
+	//struct timeval tv;
+	//struct timeval tv2;
+	//gettimeofday(&tv, (void *) NULL);
 
 	capture = cvCaptureFromCAM(0);
 	if (capture == NULL) {
@@ -64,68 +66,79 @@ int main(void) {
 	cvMoveWindow("filters", 0, 0);
 	
 	key = -1;
-	while (key != 'q') {
+	while (key != 'z') {
 		frame = cvQueryFrame(capture);		
 
 		if (frame == NULL) {
 			break;
 		}
 		/* Si presionamos alguna tecla se cambia el filtro actual */
-        /* Comandos: 
-            s - cambia implementación
-            q - agrega filtro rotar
-            w - agrega filtro scale2x
-            e - agrega filtro monocromatizar
-            r - agrega filtro sepia
-            t - agrega filtro smalltiles
-            y - agrega filtro blur
-            d - borra el filtro actual
-            f - pasa al siguiente filtro
-            g - pasa al filtro anterior
-        */
-		switch (key) {
-			case 's':
-				if ( actual == ASM) {
-                    actual = C;
-				} else {
-                    actual = ASM;
-				}
-				break;
-            case 'q':
-                agregar(lista, rotar_asm, rotar_c, "rotar");
-                break;
-            case 'w':
-                agregar(lista, scale2x_asm, scale2x_c, "scale2x");
-                break;
-            case 'e':
-                agregar(lista, monocromatizar_asm, monocromatizar_c, "monocromatizar");
-                break;
-            case 'r':
-                agregar(lista, sepia_asm, sepia_c, "sepia");
-                break;
-            case 't':
-                agregar(lista, smalltiles_asm, smalltiles_c, "smalltiles");
-                break;
-            case 'y':
-                agregar(lista, blur_asm, blur_c, "blur");
-                break;
-            case 'd':
-                remover(lista);
-                break;
-            case 'f':
-                avanzar(lista);
-                break;
-            case 'g':
-                retroceder(lista);
-                break;
-			case -1:
-				break;
-			default: ;
+		/* Comandos: 
+			s - cambia implementación
+			q - agrega filtro rotar
+			w - agrega filtro scale2x
+			e - agrega filtro monocromatizar
+			r - agrega filtro sepia
+			t - agrega filtro smalltiles
+			y - agrega filtro blur
+			d - borra el filtro actual
+			f - pasa al siguiente filtro
+			g - pasa al filtro anterior
+		*/
+		if (key != -1) 	{
+			switch ((char)key) {
+
+				case 's':
+					if ( actual == ASM) {
+						actual = C;
+					} else {
+						actual = ASM;
+					}
+					break;
+				case 'q':
+					agregar(lista, rotar_asm, rotar_c, "rotar");
+					print_everything();
+					break;
+				case 'w':
+					agregar(lista, scale2x_asm, scale2x_c, "scale2x");
+					print_everything();
+					break;
+				case 'e':
+					agregar(lista, monocromatizar_asm, monocromatizar_c, "monocromatizar");
+					print_everything();
+					break;
+				case 'r':
+					agregar(lista, sepia_asm, sepia_c, "sepia");
+					print_everything();
+					break;
+				case 't':
+					agregar(lista, smalltiles_asm, smalltiles_c, "smalltiles");
+					print_everything();
+					break;
+				case 'y':
+					agregar(lista, blur_asm, blur_c, "blur");
+					print_everything();
+					break;
+				case 'd':
+					remover(lista);
+					print_everything();
+					break;
+				case 'f':
+					avanzar(lista);
+					print_everything();
+					break;
+				case 'g':
+					retroceder(lista);
+					print_everything();
+					break;
+				default:
+					break;
+			}
 		}
 
-	    clean_screen();
+		//clean_screen();
 		/* Calculamos los fps */
-		counter++;
+		/*counter++;
 		if (counter % 10 == 0) {
 			gettimeofday(&tv2, (void *) NULL);
 
@@ -135,45 +148,40 @@ int main(void) {
 
 			gettimeofday(&tv, (void *) NULL);
 			sprintf(fpsstr, "fps: %.2f  ", fps);
+		}*/
+
+		/* aplicamos los filtros */
+		for (it = lista->pri; it != NULL; it = it->sig) {
+
+			buffer = cvCreateImage( cvSize(frame->width, frame->height), 
+				IPL_DEPTH_8U,
+				4);
+
+			cvCvtColor( frame, buffer, CV_RGB2RGBA);
+
+			buffer2 = cvCreateImage( cvSize(frame->width, frame->height), 
+				IPL_DEPTH_8U,
+				4);
+
+			if (actual == ASM) {
+				it->asmf((unsigned char *) buffer->imageData, 
+								(unsigned char *)  buffer2->imageData, 
+								buffer->height, buffer->width, 
+								buffer->widthStep, buffer2->widthStep);
+			} else {
+				it->cf((unsigned char *) buffer->imageData, 
+								(unsigned char *)  buffer2->imageData, 
+								buffer->height, buffer->width, 
+								buffer->widthStep, buffer2->widthStep);
+			}
 		}
-
-        /* aplicamos los filtros */
-        for (it = lista->pri; it != NULL; it = it->sig) {
-
-		    buffer = cvCreateImage( cvSize(frame->width, frame->height), 
-				IPL_DEPTH_8U,
-				4);
-
-		    cvCvtColor( frame, buffer, CV_RGB2RGBA);
-
-		    buffer2 = cvCreateImage( cvSize(frame->width, frame->height), 
-				IPL_DEPTH_8U,
-				4);
-
-            if (actual == ASM) {
-		        it->asmf((unsigned char *) buffer->imageData, 
-								(unsigned char *)  buffer2->imageData, 
-								buffer->height, buffer->width, 
-								buffer->widthStep, buffer2->widthStep);
-            } else {
-		        it->cf((unsigned char *) buffer->imageData, 
-								(unsigned char *)  buffer2->imageData, 
-								buffer->height, buffer->width, 
-								buffer->widthStep, buffer2->widthStep);
-            }
-            if (it == lista->actual) {
-                printf("*");
-            }
-            printf(it->nombre);
-            printf("  ");
-        }
 		fflush(stdout);
-                
+				
 
 		/* Una vez aplicado el filtro, agregamos los fps a la imagen */
 		CvFont font;
-    	cvInitFont(&font, CV_FONT_HERSHEY_SIMPLEX, 1.0, 1.0, 0, 1, CV_AA);
-    	//cvPutText(buffer2, fpsstr , cvPoint(10, 30), 
+		cvInitFont(&font, CV_FONT_HERSHEY_SIMPLEX, 1.0, 1.0, 0, 1, CV_AA);
+		//cvPutText(buffer2, fpsstr , cvPoint(10, 30), 
 	//		&font, cvScalar(255, 255, 255, 0));
 
 		cvShowImage("original", frame);
@@ -181,6 +189,10 @@ int main(void) {
 
 
 		key = cvWaitKey(1);
+		if (key != -1) {
+			int a;
+			a++;
+		}
 		cvReleaseImage(&buffer);
 		cvReleaseImage(&buffer2);
 	}
@@ -192,6 +204,18 @@ int main(void) {
 		
 }
 
+void print_everything() {
+	nfiltro *it = NULL;
+	for (it = lista->pri; it != NULL; it = it->sig) {
+		if (it == lista->actual) {
+			printf("*");
+		}
+		printf(it->nombre);
+		printf("  ");
+	}
+	printf("\n");
+	fflush(stdout);
+}
 void clean_screen() {
 	printf("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b");
 }
