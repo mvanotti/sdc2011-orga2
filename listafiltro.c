@@ -2,63 +2,74 @@
 #include <stdlib.h>
 #include<string.h>
 
-typedef void (*pfiltro)(unsigned char *, unsigned char *, int, int, int, int);
-
-typedef struct t_filtro {
-    pfiltro fun;
-    struct t_filtro* sig;
-    struct t_filtro* ant;
-    char[256] nombre;
-}nfiltro;
-
-typedef struct t_filtro_lista{
-    nfiltro* prim;
-    nfiltro* ult;
-}lista_filtro;
-
-lista_filtro* crear(void){
+lista_filtro* crear(void) {
     lista_filtro* tmp = malloc(sizeof(lista_filtro));
     tmp->prim = NULL;
     tmp->ult = NULL;
+    tmp->actual = NULL;
     return tmp;
 }
 
-void agregar(lista_filtro* lista, pfiltro filtro, char* nombre){
+void agregar(lista_filtro* lista, pfiltro asmf, pfiltro cf, char* nombre){
     nfiltro* fil = malloc(sizeof(nfiltro));
-    fil->fun = filtro;
+    fil->asmf = asmf;
+    fil->cf = cf;
     fil->sig = NULL;
     strncpy(fil->nombre,nombre,256);
-    fil->ant = NULL;
+    fil->sig[255] = '\0';
     
-    lista->ult = fil;
-    if(lista->prim == NULL){
-        lista->prim = fil;
-    } else{
-        nfiltro* tmp = lista->prim;
-        while(tmp->sig != NULL){
-            tmp = tmp->sig;
+    if (lista->actual != NULL) {
+        fil->sig = lista->actual->sig;
+        lista->actual->sig = fil;
+        fil->ant = lista->actual;
+        if (fil->sig != NULL) {
+            fil->sig->ant = fil;
+        } else {
+            lista->ult = fil;
         }
-        tmp->sig = fil;
-        fil->ant = tmp;
+    } else {
+        lista->pri = fil;
+        lista->ult = fil;
     }
+    lista->actual = fil;
 }
 
 void remover(lista_filtro* lista){
-    nfiltro *tmp = lista->ult;
-    if(tmp == NULL){
+    nfiltro *tmp = lista->actual;
+    if (tmp == NULL){
         return;
     }
-    if(tmp->ant == NULL){
-        lista->prim = NULL;
-        lista->ult = NULL;
-        free(tmp);
-        return;
+    if (tmp->ant) {
+        lista->actual = tmp->ant;
+    } else {
+        lista->actual = tmp->sig;
     }
-    lista->ult = tmp->ant;
+    nfiltro *ant = tmp->ant;
+    nfiltro *sig = tmp->sig;
+    if (tmp == lista->prim) {
+        lista->prim = sig;
+    }
+    if (tmp == list->ult) {
+        list->ult = ant;
+    }
+    if (ant != NULL) {
+        ant->sig = sig;
+    }
+    if (sig != NULL) {
+        sig->ant = ant;
+    }
     free(tmp);
-    lista->ult->sig = NULL;
-
 }
 
-void borrar(lista_filtro* lista);
+void avanzar(lista_filtro *lista) {
+    if (lista->actual && lista->actual->sig) {
+        lista->actual = lista->actual->sig;
+    }
+}
+
+void retroceder(lista_filtro *lista) {
+    if (lista->actual && lista->actual->ant) {
+        lista->actual = lista->actual->ant;
+    }
+}
 
