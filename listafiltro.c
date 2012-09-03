@@ -15,6 +15,7 @@ void agregar(lista_filtro* lista, pfiltro asmf, pfiltro cf, char* nombre){
     fil->asmf = asmf;
     fil->cf = cf;
     fil->sig = NULL;
+	fil->ant = NULL;
     strncpy(fil->nombre,nombre,100);
     fil->nombre[99] = '\0';
     
@@ -54,9 +55,18 @@ void remover(lista_filtro* lista){
     }
     if (ant != NULL) {
         ant->sig = sig;
+    } else {
+        lista->pri = sig;
     }
     if (sig != NULL) {
         sig->ant = ant;
+    } else {
+		lista->ult = ant;
+	}
+	if (sig == NULL && ant == NULL) {
+        lista->actual = NULL;
+		lista->pri = NULL;
+		lista->ult = NULL;
     }
     free(tmp);
 }
