@@ -134,11 +134,11 @@ int main(void) {
 					remover(lista);
 					print_everything();
 					break;
-				case 'f':
+				case 'g':
 					avanzar(lista);
 					print_everything();
 					break;
-				case 'g':
+				case 'f':
 					retroceder(lista);
 					print_everything();
 					break;
@@ -210,6 +210,7 @@ int main(void) {
 
 void print_everything() {
 	nfiltro *it = NULL;
+	clean_screen();
 	for (it = lista->pri; it != NULL; it = it->sig) {
 		if (it == lista->actual) {
 			printf("*");
@@ -217,9 +218,8 @@ void print_everything() {
 		printf(it->nombre);
 		printf("  ");
 	}
-	printf("\n");
 	fflush(stdout);
 }
 void clean_screen() {
-	printf("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b");
+	printf("\033[2J\033[1;1H");
 }
