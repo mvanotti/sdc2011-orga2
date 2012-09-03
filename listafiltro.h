@@ -11,7 +11,7 @@ typedef struct t_filtro {
 } nfiltro;
 
 typedef struct t_filtro_lista {
-    nfiltro *prim;
+    nfiltro *pri;
     nfiltro *ult;
     nfiltro *actual;
 }lista_filtro;
@@ -22,4 +22,6 @@ void agregar(lista_filtro* lista, pfiltro asmf, pfiltro cf, char* nombre);
 
 void remover(lista_filtro* lista);
 
-void borrar(lista_filtro* lista);
+void avanzar(lista_filtro *lista);
+
+void retroceder(lista_filtro *lista);
