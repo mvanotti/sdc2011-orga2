@@ -1,6 +1,7 @@
 section .data
 
 magenta_mask: db 0xFF, 0, 0xFF, 0, 0xFF, 0, 0xFF, 0, 0xFF, 0, 0xFF, 0, 0xFF, 0, 0xFF, 0, 0xFF, 0, 0xFF, 0, 0xFF, 0, 0xFF
+mascara_and: db 0xFF, 0xFF, 0xFF, 0, 0xFF, 0xFF, 0xFF, 0, 0xFF, 0xFF, 0xFF, 0, 0xFF, 0xFF, 0xFF, 0, 0xFF, 0xFF, 0xFF, 0, 0xFF, 0xFF, 0xFF, 0
 DEFAULT REL
 section .text
 global blit_asm
@@ -56,6 +57,7 @@ blit_asm:
     mov dst_rs, r9
 
     movdqu xmm2, [magenta_mask]
+    movdqu xmm7, [mascara_and]
 
     mov rsi, w
     imul rsi, 4  ; pixels to bytes
@@ -125,7 +127,8 @@ blit_asm:
 
         xor r8, r8
         movdqu xmm0, [src + rax]
-        movdqa xmm1, [blit]
+        movdqu xmm1, [blit]
+        pand xmm1, xmm7
         ;aplicamos
         movdqa xmm3, xmm2
         pcmpeqd xmm3, xmm1
@@ -140,6 +143,7 @@ blit_asm:
             movdqa xmm0, [src + rax]
             movdqu xmm1, [blit + r8]
             ;aplicamos
+            pand xmm1, xmm7
             movdqa xmm3, xmm2
             pcmpeqd xmm3, xmm1
             pand xmm0, xmm3
@@ -161,6 +165,7 @@ blit_asm:
         movdqu xmm0, [src + rax]
         movdqu xmm1, [blit + r8]
         ; aplicamos
+        pand xmm1, xmm7
         movdqa xmm3, xmm2
         pcmpeqd xmm3, xmm1
         pand xmm0, xmm3

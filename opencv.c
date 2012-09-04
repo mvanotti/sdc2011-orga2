@@ -20,6 +20,8 @@ char fpsstr[100];
 
 void print_everything();
 
+IplImage *blit = NULL;
+
 int main(void) {
 	nfiltro *it = NULL;
 
@@ -46,8 +48,14 @@ int main(void) {
 		exit(1);
 	}
 
-	cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_WIDTH, 1366);
-	cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_HEIGHT, 720);
+    bufferTMP = cvLoadImage("blit.bmp", CV_LOAD_IMAGE_COLOR);
+    blit = cvCreateImage( cvSize(bufferTMP->width, bufferTMP->height), 
+        IPL_DEPTH_8U,
+        4);
+    cvCvtColor( bufferTMP, blit, CV_RGB2RGBA);
+
+	cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_WIDTH, 640);
+	cvSetCaptureProperty( capture, CV_CAP_PROP_FRAME_HEIGHT, 480);
 
 	cvNamedWindow("filters", CV_WINDOW_AUTOSIZE);
 	cvNamedWindow("original", CV_WINDOW_AUTOSIZE);
@@ -121,6 +129,10 @@ int main(void) {
 					break;
                 case 'u':
                     agregar(lista, invertir_asm, invertir_c, "invertir");
+                    print_everything();
+                    break;
+                case 'i':
+                    agregar(lista, blitW_asm, blitW_c, "blit");
                     print_everything();
                     break;
 				case 'd':
@@ -219,4 +231,13 @@ void print_everything() {
 }
 void clean_screen() {
 	printf("\033[2J\033[1;1H");
+}
+
+
+void blitW_c(unsigned char *src, unsigned char *dst, int h, int w, int src_row_size, int dst_row_size) {
+    blit_c(src, dst, h, w, src_row_size, dst_row_size, (unsigned char *) blit->imageData, blit->height, blit->width, blit->widthStep);
+}
+
+void blitW_asm(unsigned char *src, unsigned char *dst, int h, int w, int src_row_size, int dst_row_size) {
+    blit_asm(src, dst, h, w, src_row_size, dst_row_size, (unsigned char *) blit->imageData, blit->height, blit->width, blit->widthStep);
 }

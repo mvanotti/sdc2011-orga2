@@ -22,4 +22,11 @@ void blur_asm(unsigned char *src, unsigned char *dst, int h, int w, int src_row_
 void invertir_c(unsigned char *src, unsigned char *dst, int h, int w, int src_row_size, int dst_row_size); 
 void invertir_asm(unsigned char *src, unsigned char *dst, int h, int w, int src_row_size, int dst_row_size);
 
+void blitW_c(unsigned char *src, unsigned char *dst, int h, int w, int src_row_size, int dst_row_size); 
+void blitW_asm(unsigned char *src, unsigned char *dst, int h, int w, int src_row_size, int dst_row_size);
+
+void blit_c (unsigned char *src, unsigned char *dst, int h, int w, int src_row_size, int dst_row_size, unsigned char *blit, int bh, int bw, int b_row_size);
+
+void blit_asm (unsigned char *src, unsigned char *dst, int h, int w, int src_row_size, int dst_row_size, unsigned char *blit, int bh, int bw, int b_row_size);
+
 #endif /* !__FILTROS__H__ */

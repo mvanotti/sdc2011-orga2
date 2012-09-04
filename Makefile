@@ -23,6 +23,8 @@ OBJS = opencv.o \
 		filtros/c/blur_c.o\
         filtros/asm/invertir_asm.o\
         filtros/c/invertir_c.o\
+        filtros/c/blit_c.o\
+        filtros/asm/blit_asm.o\
 		utils.o
 
 .PHONY: all debug test clean
